@@ -1,15 +1,10 @@
-from aiogram import Bot, Dispatcher
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.utils import executor
 
-from config import TOKEN_API
-from handlers import admin
+from create_bot import dp
+from admin import admin
+from client import handlers
 
-storage = MemoryStorage()
-
-bot = Bot(TOKEN_API)
-dp = Dispatcher(bot, storage=storage)
-# client.register_handlers_client(dp)
+handlers.register_handlers_client(dp)
 admin.register_handlers_admin(dp)
 
 executor.start_polling(dp, skip_updates=True)

@@ -1,8 +1,12 @@
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 
-kb_admin = ReplyKeyboardMarkup(resize_keyboard=True)
-add_worker = KeyboardButton('Додати працівника')
-del_worker = KeyboardButton('Видалити працівника')
-cancel = KeyboardButton('Відміна')
-user_list = KeyboardButton('Список користувачів')
-kb_admin.add(add_worker, del_worker, cancel, user_list)
+
+#
+kb_manage_user = InlineKeyboardMarkup(row_width=2)
+add_user = InlineKeyboardButton(text='Додати користувача', callback_data='Додати користувача')
+del_user = InlineKeyboardButton(text='Видалити користувача', callback_data='Видалити користувача')
+user_list = InlineKeyboardButton(text='Список користувачів', callback_data='Список користувачів')
+cancel = InlineKeyboardButton(text='Відміна', callback_data='Відміна')
+kb_manage_user.add(add_user, del_user, user_list, cancel)
+
+
