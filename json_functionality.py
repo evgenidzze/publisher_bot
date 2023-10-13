@@ -1,4 +1,5 @@
 import json
+from typing import List
 
 from aiogram import types
 
@@ -10,6 +11,12 @@ def get_admins() -> list:
     with open('data.json', 'r', encoding='utf-8') as file:
         file_data = json.load(file)
         return file_data['admins']
+
+
+def get_users_dict() -> dict:
+    with open('data.json', 'r', encoding='utf-8') as file:
+        file_data = json.load(file)
+        return file_data['users']
 
 
 async def save_user_id_to_json(user_id: str, message: types.Message):
@@ -66,20 +73,48 @@ async def save_channel_json(channel_id: str, message: types.Message):
                     reply_markup=kb_manage_channel_inline, parse_mode='html')
 
 
+async def save_cat_json(cat_name, message: types.Message):
+    with open('data.json', 'r+', encoding='utf-8') as file:
+        file_data = json.load(file)
+        file_data['catalogs'][cat_name] = {"videos": [],
+                                           "photos": [],
+                                           "voices": [],
+                                           "documents": [],
+                                           'gifs': [],
+                                           'video_notes': []
+                                           }
+        file.seek(0)
+        json.dump(file_data, file, ensure_ascii=False, indent=4)
 
-def get_all_users():
+
+def cat_name_exist(cat_name):
+    with open('data.json', 'r+', encoding='utf-8') as file:
+        file_data = json.load(file)
+        if cat_name not in file_data['catalogs']:
+            return False
+        else:
+            return True
+
+
+def catalog_list_json():
+    with open('data.json', 'r+', encoding='utf-8') as file:
+        file_data = json.load(file)
+        catalogs = file_data['catalogs']
+        return catalogs
+
+
+def get_all_users_str() -> str:
     with open('data.json', 'r', encoding='utf-8') as file:
         file_data = json.load(file)
         users = "\n".join(
-            [f"{name} - `{id}`" if name else f"Без імені - `{id}`" for id, name in file_data['users'].items()])
+            [f"{name} - `{id}`" for id, name in file_data['users'].items()])
         return users
 
 
 def get_all_channels(user_id):
     with open('data.json', 'r', encoding='utf-8') as file:
         file_data = json.load(file)
-        channels = [f"{name} - <code>{id}</code>" for id, name in file_data['channels'][str(user_id)].items()]
-        return channels
+        return file_data['channels'][str(user_id)]
 
 
 async def remove_channel_id_from_json(channel_id, message: types.Message):
@@ -98,16 +133,94 @@ async def remove_channel_id_from_json(channel_id, message: types.Message):
         await message.answer(text=f'Каналу з таким id не існує', reply_markup=kb_manage_channel_inline)
 
 
-def user_register_status(user_id: str) -> dict:
+async def add_media_to_catalog(messages: List[types.Message], bot, catalog_name):
+    photos, gifs, voices, documents, videos, video_notes = [], [], [], [], [], []
+    for message in messages:
+        if message.content_type == 'photo':
+            photos.append(message.photo[0].file_id)
+        elif message.content_type == 'video':
+            videos.append(message.video.file_id)
+        elif message.content_type == 'animation':
+            gifs.append(message.animation.file_id)
+        elif message.content_type in ('voice', 'audio', 'video_note'):
+            if message.content_type == 'voice':
+                voices.append(message.voice.file_id)
+            elif message.content_type == 'audio':
+                from utils import send_voice_from_audio
+                await message.answer(text='Переформатування аудіо у голосове...')
+                voice_message = await send_voice_from_audio(message=messages[0], bot=bot)
+                voices.append(voice_message.voice.file_id)
+            elif message.content_type == 'video_note':
+                video_notes.append(message.video_note.file_id)
+        elif message.content_type == 'document':
+            documents.append(message.document.file_id)
+
     with open('data.json', 'r+', encoding='utf-8') as file:
         file_data = json.load(file)
-        users = file_data['users']
-        register_status = {'is_id': False, 'is_name': False}
+        file_data['catalogs'][catalog_name]["photos"].extend(photos)
+        file_data['catalogs'][catalog_name]["videos"].extend(videos)
+        file_data['catalogs'][catalog_name]["voices"].extend(voices)
+        file_data['catalogs'][catalog_name]["documents"].extend(documents)
+        file_data['catalogs'][catalog_name]["gifs"].extend(gifs)
+        file_data['catalogs'][catalog_name]["video_notes"].extend(video_notes)
+        file.seek(0)
+        json.dump(file_data, file, ensure_ascii=False, indent=4)
 
-        if user_id in users:
-            register_status['is_id'] = True
-            register_status['is_name'] = bool(users[user_id])
-            if register_status['is_name']:
-                register_status['name'] = users[user_id]
-            return register_status
-        return register_status
+
+def get_catalog(cat_name):
+    with open('data.json', 'r', encoding='utf-8') as file:
+        file_data = json.load(file)
+        catalog = file_data['catalogs'][cat_name]
+        catalog = {k: v for k, v in catalog.items() if v}
+        return catalog
+
+
+def remove_cat_media_json(cat_name, media_type, media_index):
+    with open('data.json', 'r+', encoding='utf-8') as file:
+        file_data = json.load(file)
+        del file_data['catalogs'][cat_name][media_type][media_index]
+        file.seek(0)
+        json.dump(file_data, file, ensure_ascii=False, indent=4)
+        file.truncate()
+
+
+def delete_catalog_json(cat_name):
+    with open('data.json', 'r+', encoding='utf-8') as file:
+        file_data = json.load(file)
+        del file_data['catalogs'][cat_name]
+        file.seek(0)
+        json.dump(file_data, file, ensure_ascii=False, indent=4)
+        file.truncate()
+
+
+async def get_media_from_base(message: types.Message, cat_name, media_type, media_indexes: list):
+    with open('data.json', 'r', encoding='utf-8') as file:
+        file_data = json.load(file)
+        res = []
+        try:
+            if max(media_indexes) + 1 <= len(file_data['catalogs'][cat_name][media_type]):
+                for media_index in media_indexes:
+                    file_id = file_data['catalogs'][cat_name][media_type][media_index]
+                    res.append(CustomMessage(file_id=file_id, media_type=media_type, message=message))
+                return res
+            else:
+                await message.answer(text='Введіть допустимі значення')
+                return
+        except:
+            await message.answer(text='Введіть допустимі значення')
+            return
+
+
+class CustomMessage:
+    def __init__(self, file_id, media_type, message: types.Message):
+        self.file_id = file_id
+        self.media_type = media_type
+        self.message = message
+
+    @property
+    def content_type(self):
+        return self.media_type
+
+    async def answer(self, text, reply_markup=None):
+        await self.message.answer(text=text, reply_markup=reply_markup)
+

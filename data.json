@@ -1,6 +1,7 @@
 {
     "users": {
-        "397875584": "evgenidzee"
+        "397875584": "evgenidzee",
+        "668637291": "zavalusha"
     },
     "admins": [
         "1311521096",
@@ -8,7 +9,26 @@
     ],
     "channels": {
         "397875584": {
-            "-1001967754187": "Schedule Test 1"
+            "-1001967754187": "Schedule Test 1",
+            "-1001848750759": "Schedule Test 2"
+        }
+    },
+    "catalogs": {
+        "бек": {
+            "videos": [
+                "BAACAgIAAxkBAAJCWmUo42_tRE7nXnPH7szLHvR05BOYAAIJNwACsklJSexjytwGjYmsMAQ",
+                "BAACAgIAAxkBAAJCXGUo429hN0vk1IPZ0YmX0g1DENdoAAIKNwACsklJSel__AkwAAGrEDAE",
+                "BAACAgIAAxkBAAJCXWUo42_mpWhcqDIstalYvtyg9t5GAAILNwACsklJSSdKJl4aVExKMAQ"
+            ],
+            "photos": [
+                "AgACAgIAAxkBAAJCVmUo428vvUzfnlZqojlqFDwWEq_NAAKRzDEbsklJSYc6CUahCDpbAQADAgADcwADMAQ",
+                "AgACAgIAAxkBAAJCV2Uo429EQL1e25p3HH0jrLoaesBaAAKSzDEbsklJSRigWho3rxVtAQADAgADcwADMAQ",
+                "AgACAgIAAxkBAAJCWGUo42-CGdjptGxmVHyGWlFhoqrrAAKTzDEbsklJSXgFerBUg8k6AQADAgADcwADMAQ"
+            ],
+            "voices": [],
+            "documents": [],
+            "gifs": [],
+            "video_notes": []
         }
     }
 }
