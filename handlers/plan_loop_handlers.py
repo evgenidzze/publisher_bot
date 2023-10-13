@@ -117,6 +117,9 @@ async def choose_plan_date(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
     fsm_data = await state.get_data()
     keys_to_check = ['post_text', 'loaded_post_files', 'voice']
+    job_id = fsm_data.get('job_id')
+    if job_id:
+        fsm_data = scheduler.get_job(job_id).kwargs['data']
 
     if any(fsm_data.get(key) for key in keys_to_check):
         from handlers.client import FSMClient
